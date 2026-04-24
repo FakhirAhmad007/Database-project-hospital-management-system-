@@ -1,0 +1,301 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background-color: #f0f2f5;
+  color: #333;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #1a1a6e;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px 0;
+}
+
+.sidebar h2 {
+  color: white;
+  text-align: center;
+  font-size: 18px;
+  padding: 10px 20px 20px;
+  border-bottom: 1px solid #ffffff33;
+}
+
+.sidebar a {
+  display: block;
+  color: #ffffffcc;
+  text-decoration: none;
+  padding: 14px 24px;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #ffffff22;
+  color: white;
+  border-left: 4px solid #00cfff;
+}
+
+/* Main content */
+.main {
+  margin-left: 240px;
+  padding: 30px;
+}
+
+/* Top bar */
+.topbar {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px #00000011;
+}
+
+.topbar h1 {
+  font-size: 22px;
+  color: #1a1a6e;
+}
+
+/* Stat cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px #00000011;
+}
+
+.card h3 {
+  font-size: 36px;
+  color: #1a1a6e;
+}
+
+.card p {
+  color: #888;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.card.blue  { border-top: 4px solid #1a1a6e; }
+.card.green { border-top: 4px solid #28a745; }
+.card.red   { border-top: 4px solid #dc3545; }
+.card.gold  { border-top: 4px solid #ffc107; }
+
+/* Table */
+.table-box {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px #00000011;
+  margin-bottom: 24px;
+}
+
+.table-box h2 {
+  margin-bottom: 16px;
+  color: #1a1a6e;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #1a1a6e;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+tr:hover td {
+  background-color: #f5f7ff;
+}
+
+/* Login */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a6e, #00cfff);
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  width: 380px;
+  box-shadow: 0 10px 40px #00000033;
+}
+
+.login-box h2 {
+  text-align: center;
+  color: #1a1a6e;
+  margin-bottom: 8px;
+}
+
+.login-box p {
+  text-align: center;
+  color: #888;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+  outline: none;
+}
+
+.login-box input:focus {
+  border-color: #1a1a6e;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 13px;
+  background: #1a1a6e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-box button:hover {
+  background: #00cfff;
+}
+
+/* Badge */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge.male     { background: #e8f0fe; color: #1a1a6e; }
+.badge.female   { background: #fce8f3; color: #c2185b; }
+.badge.paid     { background: #e8f5e9; color: #2e7d32; }
+.badge.occupied { background: #fff3e0; color: #e65100; }
+
+/* ── Print styles ── */
+@media print {
+  .sidebar,
+  .topbar,
+  .search-box,
+  .btn-edit,
+  .btn-delete,
+  .btn-print,
+  .btn-export,
+  .no-print {
+    display: none !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  .table-box {
+    box-shadow: none !important;
+    border: 1px solid #ddd;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  th {
+    background-color: #1a1a6e !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .print-header h2 {
+    font-size: 20px;
+    color: #1a1a6e;
+  }
+
+  .print-header p {
+    font-size: 13px;
+    color: #666;
+  }
+}
+
+/* Hidden on screen shown on print */
+.print-header {
+  display: none;
+}
+
+/* Print and Export buttons */
+.btn-print {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-print:hover  { background: #218838; }
+
+.btn-export {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-export:hover { background: #a71d2a; }

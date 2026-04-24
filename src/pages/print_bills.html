@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Bills</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    body { background:white; }
+    .print-page { max-width:1000px;margin:0 auto;padding:30px; }
+    .print-top { display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1a1a6e; }
+    .print-top h2 { color:#1a1a6e;font-size:22px; }
+    .print-top p  { color:#888;font-size:13px;margin-top:4px; }
+    .print-actions { display:flex;gap:10px; }
+    .hospital-name { font-size:28px;font-weight:bold;color:#1a1a6e;text-align:center;margin-bottom:4px; }
+    .hospital-sub  { text-align:center;color:#888;font-size:13px;margin-bottom:24px; }
+    .summary-row { display:flex;gap:20px;margin-bottom:24px; }
+    .summary-item { background:#f5f7ff;border-left:4px solid #1a1a6e;padding:12px 20px;border-radius:8px;flex:1; }
+    .summary-item h4 { font-size:22px;color:#1a1a6e; }
+    .summary-item p  { font-size:12px;color:#888; }
+    .section-title { font-size:16px;font-weight:bold;color:#1a1a6e;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid #eee; }
+    @media print {
+      .print-actions { display:none !important; }
+      .print-page    { padding:10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="print-page">
+  <div class="hospital-name">🏥 HospitalDB</div>
+  <div class="hospital-sub">Hospital Management System — Billing Report</div>
+
+  <div class="print-top">
+    <div>
+      <h2>Billing Report</h2>
+      <p id="printDate"></p>
+    </div>
+    <div class="print-actions">
+      <button class="btn-print"  onclick="window.print()">🖨️ Print</button>
+      <button class="btn-export" onclick="window.print()">📄 Export PDF</button>
+      <a href="billing.html" style="background:#f0f2f5;color:#333;padding:9px 18px;border-radius:8px;font-size:14px;text-decoration:none;display:inline-block;">← Back</a>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-item"><h4 id="inTotal">Rs. 0</h4><p>In-Patient Revenue</p></div>
+    <div class="summary-item"><h4 id="outTotal">Rs. 0</h4><p>Out-Patient Revenue</p></div>
+    <div class="summary-item"><h4 id="grandTotal">Rs. 0</h4><p>Total Revenue</p></div>
+    <div class="summary-item"><h4 id="billCount">0</h4><p>Total Bills</p></div>
+  </div>
+
+  <div class="section-title">In-Patient Bills</div>
+  <div class="table-box" style="margin-bottom:24px;">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Payment ID</th><th>Patient Name</th><th>Doctor</th><th>Admission Date</th><th>Total Bill</th><th>Status</th></tr>
+      </thead>
+      <tbody id="inbody"></tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Out-Patient Bills</div>
+  <div class="table-box">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Patient ID</th><th>Patient Name</th><th>Doctor</th><th>Total Bill</th><th>Status</th></tr>
+      </thead>
+      <tbody id="outbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function esc(v) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(v ?? ''));
+  return d.innerHTML;
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+document.getElementById('printDate').textContent = 'Generated: ' + new Date().toLocaleString();
+
+let inTotal = 0, outTotal = 0, count = 0;
+
+function updateTotals() {
+  document.getElementById('inTotal').textContent    = 'Rs. ' + inTotal.toLocaleString();
+  document.getElementById('outTotal').textContent   = 'Rs. ' + outTotal.toLocaleString();
+  document.getElementById('grandTotal').textContent = 'Rs. ' + (inTotal + outTotal).toLocaleString();
+  document.getElementById('billCount').textContent  = count;
+}
+
+fetch('../php/bills.php')
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    const tbody = document.getElementById('inbody');
+    data.forEach((b, i) => {
+      inTotal += parseFloat(b.total) || 0;
+      count++;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${esc(b.paymentid)}</td>
+        <td>${esc(b.patientName)}</td>
+        <td>${esc(b.doctorname)}</td>
+        <td>${esc(b.admissionDate)}</td>
+        <td>Rs. ${esc(b.total)}</td>
+        <td><span class="badge paid">Paid</span></td>`;
+      tbody.appendChild(tr);
+    });
+    updateTotals();
+  });
+
+fetch('../php/outpatients.php')
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    const tbody = document.getElementById('outbody');
+    data.forEach((b, i) => {
+      outTotal += parseFloat(b.total) || 0;
+      count++;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${esc(b.patientid)}</td>
+        <td>${esc(b.patientname)}</td>
+        <td>${esc(b.doctorname ?? '—')}</td>
+        <td>Rs. ${esc(b.total ?? '0.00')}</td>
+        <td><span class="badge paid">Paid</span></td>`;
+      tbody.appendChild(tr);
+    });
+    updateTotals();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctors</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"             >📊 Dashboard</a>
+  <a href="inpatients.html"            >🛏️ In Patients</a>
+  <a href="outpatients.html"           >🚶 Out Patients</a>
+  <a href="doctors.html" class="active">👨‍⚕️ Doctors</a>
+  <a href="rooms.html"                 >🚪 Rooms</a>
+  <a href="billing.html"               >💰 Billing</a>
+  <a href="#" onclick="logout()" style="position:absolute;bottom:20px;width:100%;">🚪 Logout</a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Doctors</h1>
+    <span id="total" style="color:#1a1a6e;font-weight:bold;"></span>
+  </div>
+
+  <div class="table-box">
+    <h2>All Doctors</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Doctor ID</th>
+          <th>Doctor Name</th>
+          <th>Specialization</th>
+          <th>In-Patients</th>
+          <th>Out-Patients</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function esc(v) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(v ?? ''));
+  return d.innerHTML;
+}
+function logout() {
+  fetch('../php/logout.php').finally(() => { window.location.href = 'index.html'; });
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+fetch('../php/doctors.php')
+  .then(handleUnauth)
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('total').textContent = `Total: ${data.length} doctors`;
+    const tbody = document.getElementById('tbody');
+    data.forEach(d => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(d.doctorid)}</td>
+        <td>👨‍⚕️ ${esc(d.doctorname)}</td>
+        <td>${esc(d.specialization)}</td>
+        <td>${esc(d.inpatient_count ?? 0)}</td>
+        <td>${esc(d.outpatient_count ?? 0)}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+</script>
+
+</body>
+</html>

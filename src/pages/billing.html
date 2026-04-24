@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Billing</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"              >📊 Dashboard</a>
+  <a href="inpatients.html"             >🛏️ In Patients</a>
+  <a href="outpatients.html"            >🚶 Out Patients</a>
+  <a href="doctors.html"                >👨‍⚕️ Doctors</a>
+  <a href="rooms.html"                  >🚪 Rooms</a>
+  <a href="billing.html" class="active" >💰 Billing</a>
+  <a href="#" onclick="logout()" style="position:absolute;bottom:20px;width:100%;">🚪 Logout</a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Billing</h1>
+    <a href="print_bills.html" target="_blank" class="btn-print">🖨️ Print / PDF</a>
+  </div>
+
+  <div class="cards" style="grid-template-columns:repeat(2,1fr);max-width:500px;">
+    <div class="card green">
+      <h3 id="totalIn">Rs. 0</h3>
+      <p>In-Patient Revenue</p>
+    </div>
+    <div class="card gold">
+      <h3 id="totalOut">Rs. 0</h3>
+      <p>Out-Patient Revenue</p>
+    </div>
+  </div>
+
+  <div class="table-box">
+    <h2>In-Patient Bills</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Payment ID</th>
+          <th>Patient Name</th>
+          <th>Doctor</th>
+          <th>Admission Date</th>
+          <th>Total Bill</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="inbody"></tbody>
+    </table>
+  </div>
+
+  <div class="table-box">
+    <h2>Out-Patient Bills</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Patient ID</th>
+          <th>Patient Name</th>
+          <th>Doctor</th>
+          <th>Total Bill</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="outbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function esc(v) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(v ?? ''));
+  return d.innerHTML;
+}
+function logout() {
+  fetch('../php/logout.php').finally(() => { window.location.href = 'index.html'; });
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+fetch('../php/bills.php')
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    let total = 0;
+    const tbody = document.getElementById('inbody');
+    data.forEach(b => {
+      total += parseFloat(b.total) || 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(b.paymentid)}</td>
+        <td>${esc(b.patientName)}</td>
+        <td>${esc(b.doctorname)}</td>
+        <td>${esc(b.admissionDate)}</td>
+        <td>Rs. ${esc(b.total)}</td>
+        <td><span class="badge paid">Paid</span></td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('totalIn').textContent = 'Rs. ' + total.toLocaleString();
+  });
+
+fetch('../php/outpatients.php')
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    let total = 0;
+    const tbody = document.getElementById('outbody');
+    data.forEach(b => {
+      total += parseFloat(b.total) || 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(b.patientid)}</td>
+        <td>${esc(b.patientname)}</td>
+        <td>${esc(b.doctorname ?? '—')}</td>
+        <td>Rs. ${esc(b.total ?? '0.00')}</td>
+        <td><span class="badge paid">Paid</span></td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('totalOut').textContent = 'Rs. ' + total.toLocaleString();
+  });
+</script>
+
+</body>
+</html>

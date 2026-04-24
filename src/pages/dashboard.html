@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"   class="active">📊 Dashboard</a>
+  <a href="inpatients.html"             >🛏️ In Patients</a>
+  <a href="outpatients.html"            >🚶 Out Patients</a>
+  <a href="doctors.html"                >👨‍⚕️ Doctors</a>
+  <a href="rooms.html"                  >🚪 Rooms</a>
+  <a href="billing.html"                >💰 Billing</a>
+  <a href="#" onclick="logout()"
+     style="position:absolute;bottom:20px;width:100%;">
+    🚪 Logout
+  </a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Dashboard</h1>
+    <span id="welcome">Welcome, Admin</span>
+  </div>
+
+  <div class="cards">
+    <div class="card blue">
+      <h3 id="cntIn">...</h3>
+      <p>In Patients</p>
+    </div>
+    <div class="card green">
+      <h3 id="cntOut">...</h3>
+      <p>Out Patients</p>
+    </div>
+    <div class="card red">
+      <h3 id="cntDoc">...</h3>
+      <p>Doctors</p>
+    </div>
+    <div class="card gold">
+      <h3 id="cntRoom">...</h3>
+      <p>Rooms</p>
+    </div>
+  </div>
+
+  <div class="table-box">
+    <h2>Recent In-Patients</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Patient Name</th>
+          <th>Admission Date</th>
+          <th>Gender</th>
+          <th>Doctor</th>
+          <th>Room</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function esc(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str ?? ''));
+  return d.innerHTML;
+}
+
+function logout() {
+  fetch('../php/logout.php').finally(() => {
+    window.location.href = 'index.html';
+  });
+}
+
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+fetch('../php/patients.php')
+  .then(handleUnauth)
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('cntIn').textContent = data.length;
+    const tbody = document.getElementById('tbody');
+    data.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(p.admissionID)}</td>
+        <td>${esc(p.patientName)}</td>
+        <td>${esc(p.admissionDate)}</td>
+        <td><span class="badge ${p.gender === 'Male' ? 'male' : 'female'}">${esc(p.gender)}</span></td>
+        <td>${esc(p.doctorname)}</td>
+        <td>Room ${esc(p.roomno)}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+fetch('../php/outpatients.php').then(handleUnauth).then(r => r.json())
+  .then(data => { document.getElementById('cntOut').textContent = data.length; });
+
+fetch('../php/doctors.php').then(handleUnauth).then(r => r.json())
+  .then(data => { document.getElementById('cntDoc').textContent = data.length; });
+
+fetch('../php/rooms.php').then(handleUnauth).then(r => r.json())
+  .then(data => { document.getElementById('cntRoom').textContent = data.length; });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Out Patients</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .btn-edit   { background:#1a1a6e;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:6px; }
+    .btn-delete { background:#dc3545;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px; }
+    .btn-edit:hover   { background:#00cfff; }
+    .btn-delete:hover { background:#a71d2a; }
+    .search-box { background:white;border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 2px 8px #00000011;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap; }
+    .search-box .field { display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px; }
+    .search-box label  { font-size:12px;color:#555;font-weight:500; }
+    .search-box input,
+    .search-box select { padding:9px 13px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none; }
+    .search-box input:focus,
+    .search-box select:focus { border-color:#1a1a6e; }
+    .btn-search { background:#1a1a6e;color:white;border:none;padding:10px 22px;border-radius:8px;font-size:14px;cursor:pointer; }
+    .btn-search:hover { background:#00cfff; }
+    .btn-reset  { background:#f0f2f5;color:#333;border:none;padding:10px 22px;border-radius:8px;font-size:14px;cursor:pointer; }
+    .btn-reset:hover  { background:#ddd; }
+    .modal-overlay { display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#00000066;z-index:999;align-items:center;justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:white;border-radius:12px;padding:32px;width:500px;box-shadow:0 10px 40px #00000033; }
+    .modal h2  { color:#1a1a6e;margin-bottom:20px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block;font-size:13px;color:#555;margin-bottom:5px;font-weight:500; }
+    .form-group input,
+    .form-group select { width:100%;padding:10px 13px;border:1px solid #ddd;border-radius:7px;font-size:14px;outline:none; }
+    .form-group input:focus,
+    .form-group select:focus { border-color:#1a1a6e; }
+    .modal-btns { display:flex;gap:10px;margin-top:20px; }
+    .btn-save   { background:#1a1a6e;color:white;border:none;padding:11px 24px;border-radius:8px;font-size:14px;cursor:pointer;flex:1; }
+    .btn-save:hover   { background:#00cfff; }
+    .btn-cancel { background:#f0f2f5;color:#333;border:none;padding:11px 24px;border-radius:8px;font-size:14px;cursor:pointer;flex:1; }
+    .msg { margin-top:12px;padding:10px;border-radius:7px;text-align:center;font-size:13px;display:none; }
+    .msg.success { background:#e8f5e9;color:#2e7d32; }
+    .msg.error   { background:#ffebee;color:#c62828; }
+    .no-results  { text-align:center;padding:30px;color:#888;font-size:15px; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"               >📊 Dashboard</a>
+  <a href="inpatients.html"              >🛏️ In Patients</a>
+  <a href="outpatients.html" class="active">🚶 Out Patients</a>
+  <a href="doctors.html"                 >👨‍⚕️ Doctors</a>
+  <a href="rooms.html"                   >🚪 Rooms</a>
+  <a href="billing.html"                 >💰 Billing</a>
+  <a href="#" onclick="logout()" style="position:absolute;bottom:20px;width:100%;">🚪 Logout</a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Out Patients</h1>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <span id="total" style="color:#1a1a6e;font-weight:bold;"></span>
+      <a href="add_outpatient.html" style="background:#1a1a6e;color:white;padding:9px 18px;border-radius:8px;text-decoration:none;font-size:14px;">+ Add Patient</a>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <div class="field">
+      <label>🔍 Search by Name</label>
+      <input type="text" id="searchName" placeholder="e.g. Nadia">
+    </div>
+    <div class="field">
+      <label>👨‍⚕️ Filter by Doctor</label>
+      <select id="filterDoctor"><option value="">All Doctors</option></select>
+    </div>
+    <div class="field">
+      <label>💊 Search by Medicine</label>
+      <input type="text" id="searchMedicine" placeholder="e.g. Paracetamol">
+    </div>
+    <button class="btn-search" onclick="applyFilters()">Search</button>
+    <button class="btn-reset"  onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div class="table-box">
+    <h2>All Out Patients</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Patient Name</th><th>Doctor</th>
+          <th>Specialization</th><th>Medicine</th><th>Bill</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2>✏️ Edit Out-Patient</h2>
+    <input type="hidden" id="edit_patientid">
+    <div class="form-group">
+      <label>Patient Name</label>
+      <input type="text" id="edit_patientname">
+    </div>
+    <div class="form-group">
+      <label>Doctor</label>
+      <select id="edit_doctorid"></select>
+    </div>
+    <div class="form-group">
+      <label>Staff</label>
+      <select id="edit_staffid"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-save"   onclick="saveEdit()">💾 Save Changes</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="msg" id="editMsg"></div>
+  </div>
+</div>
+
+<script>
+function esc(v) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(v ?? ''));
+  return d.innerHTML;
+}
+function logout() {
+  fetch('../php/logout.php').finally(() => { window.location.href = 'index.html'; });
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+let allPatients = [];
+
+fetch('../php/doctors.php').then(handleUnauth).then(r => r.json()).then(data => {
+  const filter = document.getElementById('filterDoctor');
+  const edit   = document.getElementById('edit_doctorid');
+  data.forEach(d => {
+    filter.appendChild(new Option(d.doctorname, d.doctorname));
+    edit.appendChild(new Option(d.doctorname, d.doctorid));
+  });
+});
+
+fetch('../php/staff.php').then(handleUnauth).then(r => r.json()).then(data => {
+  const sel = document.getElementById('edit_staffid');
+  data.forEach(s => { sel.appendChild(new Option(`${s.firstname} ${s.surname}`, s.staffid)); });
+});
+
+function loadPatients() {
+  fetch('../php/outpatients.php').then(handleUnauth).then(r => r.json()).then(data => {
+    allPatients = data;
+    renderTable(data);
+  });
+}
+
+function renderTable(data) {
+  document.getElementById('total').textContent = `Total: ${data.length} patients`;
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  if (data.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="7" class="no-results">😔 No patients found</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+
+  data.forEach(p => {
+    const tr = document.createElement('tr');
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-edit';
+    editBtn.textContent = '✏️ Edit';
+    editBtn.addEventListener('click', () => openEdit(p));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-delete';
+    delBtn.textContent = '🗑️ Delete';
+    delBtn.addEventListener('click', () => deletePatient(p.patientid, p.patientname));
+
+    tr.innerHTML = `
+      <td>${esc(p.patientid)}</td>
+      <td>${esc(p.patientname)}</td>
+      <td>${esc(p.doctorname ?? '—')}</td>
+      <td>${esc(p.specialization ?? '—')}</td>
+      <td>${esc(p.medicinename ?? '—')}</td>
+      <td>Rs. ${esc(p.total ?? '0.00')}</td>
+      <td></td>`;
+    const actionCell = tr.lastElementChild;
+    actionCell.appendChild(editBtn);
+    actionCell.appendChild(delBtn);
+    tbody.appendChild(tr);
+  });
+}
+
+function applyFilters() {
+  const name     = document.getElementById('searchName').value.toLowerCase();
+  const doctor   = document.getElementById('filterDoctor').value;
+  const medicine = document.getElementById('searchMedicine').value.toLowerCase();
+  renderTable(allPatients.filter(p =>
+    (!name     || p.patientname.toLowerCase().includes(name)) &&
+    (!doctor   || p.doctorname === doctor) &&
+    (!medicine || (p.medicinename && p.medicinename.toLowerCase().includes(medicine)))
+  ));
+}
+
+function resetFilters() {
+  ['searchName','filterDoctor','searchMedicine'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  renderTable(allPatients);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('searchName').addEventListener('input',    applyFilters);
+  document.getElementById('filterDoctor').addEventListener('change', applyFilters);
+  document.getElementById('searchMedicine').addEventListener('input', applyFilters);
+});
+
+loadPatients();
+
+function openEdit(p) {
+  document.getElementById('edit_patientid').value   = p.patientid;
+  document.getElementById('edit_patientname').value = p.patientname;
+  document.getElementById('edit_doctorid').value    = p.doctorid;
+  document.getElementById('edit_staffid').value     = p.staffid;
+  document.getElementById('editModal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+function saveEdit() {
+  const payload = {
+    patientid:   parseInt(document.getElementById('edit_patientid').value),
+    patientname: document.getElementById('edit_patientname').value,
+    doctorid:    parseInt(document.getElementById('edit_doctorid').value),
+    staffid:     parseInt(document.getElementById('edit_staffid').value)
+  };
+  fetch('../php/edit_outpatient.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload)
+  })
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showEditMsg('✅ Patient updated!', 'success');
+      setTimeout(() => { closeModal(); loadPatients(); }, 1500);
+    } else { showEditMsg('❌ ' + data.message, 'error'); }
+  });
+}
+function deletePatient(id, name) {
+  if (!confirm(`Delete "${name}"?`)) return;
+  fetch('../php/delete_outpatient.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ patientid: id })
+  })
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    if (data.success) { alert('✅ Deleted'); loadPatients(); }
+    else { alert('❌ ' + data.message); }
+  });
+}
+function showEditMsg(text, type) {
+  const msg = document.getElementById('editMsg');
+  msg.textContent = text; msg.className = 'msg ' + type; msg.style.display = 'block';
+}
+</script>
+
+</body>
+</html>

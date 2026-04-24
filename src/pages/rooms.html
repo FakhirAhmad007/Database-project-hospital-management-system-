@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rooms</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"           >📊 Dashboard</a>
+  <a href="inpatients.html"          >🛏️ In Patients</a>
+  <a href="outpatients.html"         >🚶 Out Patients</a>
+  <a href="doctors.html"             >👨‍⚕️ Doctors</a>
+  <a href="rooms.html" class="active">🚪 Rooms</a>
+  <a href="billing.html"             >💰 Billing</a>
+  <a href="#" onclick="logout()" style="position:absolute;bottom:20px;width:100%;">🚪 Logout</a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Rooms</h1>
+    <span id="total" style="color:#1a1a6e;font-weight:bold;"></span>
+  </div>
+
+  <div class="table-box">
+    <h2>All Rooms</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Room ID</th>
+          <th>Room No</th>
+          <th>Cost / Day</th>
+          <th>Patient Name</th>
+          <th>Admission Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function esc(v) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(v ?? ''));
+  return d.innerHTML;
+}
+function logout() {
+  fetch('../php/logout.php').finally(() => { window.location.href = 'index.html'; });
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+fetch('../php/rooms.php')
+  .then(handleUnauth)
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('total').textContent = `Total: ${data.length} rooms`;
+    const tbody = document.getElementById('tbody');
+    data.forEach(r => {
+      const occupied = !!r.patientName;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${esc(r.roomId)}</td>
+        <td>Room ${esc(r.roomno)}</td>
+        <td>Rs. ${esc(r.roomcost)}</td>
+        <td>${esc(r.patientName ?? '—')}</td>
+        <td>${esc(r.admissionDate ?? '—')}</td>
+        <td><span class="badge ${occupied ? 'occupied' : 'paid'}">${occupied ? 'Occupied' : 'Available'}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  });
+</script>
+
+</body>
+</html>

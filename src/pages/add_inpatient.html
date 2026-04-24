@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add In-Patient</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .form-box { background:white;border-radius:12px;padding:32px;max-width:600px;box-shadow:0 2px 8px #00000011; }
+    .form-box h2 { color:#1a1a6e;margin-bottom:24px;font-size:20px; }
+    .form-group { margin-bottom:18px; }
+    .form-group label { display:block;font-size:14px;color:#555;margin-bottom:6px;font-weight:500; }
+    .form-group input,
+    .form-group select { width:100%;padding:11px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:0.2s; }
+    .form-group input:focus,
+    .form-group select:focus { border-color:#1a1a6e; }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+    .btn-submit { background:#1a1a6e;color:white;border:none;padding:13px 32px;border-radius:8px;font-size:15px;cursor:pointer;width:100%;margin-top:8px; }
+    .btn-submit:hover { background:#00cfff; }
+    .msg { margin-top:14px;padding:12px;border-radius:8px;text-align:center;font-size:14px;display:none; }
+    .msg.success { background:#e8f5e9;color:#2e7d32; }
+    .msg.error   { background:#ffebee;color:#c62828; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🏥 HospitalDB</h2>
+  <a href="dashboard.html"  >📊 Dashboard</a>
+  <a href="inpatients.html" >🛏️ In Patients</a>
+  <a href="outpatients.html">🚶 Out Patients</a>
+  <a href="doctors.html"    >👨‍⚕️ Doctors</a>
+  <a href="rooms.html"      >🚪 Rooms</a>
+  <a href="billing.html"    >💰 Billing</a>
+  <a href="#" onclick="logout()" style="position:absolute;bottom:20px;width:100%;">🚪 Logout</a>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h1>Add In-Patient</h1>
+    <a href="inpatients.html" style="color:#1a1a6e;text-decoration:none;font-weight:500;">← Back to In-Patients</a>
+  </div>
+
+  <div class="form-box">
+    <h2>🛏️ Admit New Patient</h2>
+
+    <div class="form-group">
+      <label>Admission Date</label>
+      <input type="date" id="admissionDate">
+    </div>
+
+    <div class="form-group">
+      <label>Patient Name</label>
+      <input type="text" id="patientName" placeholder="e.g. Ahmed Khan">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="gender">
+          <option value="">-- Select --</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Staff</label>
+        <select id="staffid"></select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Doctor</label>
+      <select id="doctorid"></select>
+    </div>
+
+    <button class="btn-submit" onclick="submitForm()">✅ Admit Patient</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script>
+function logout() {
+  fetch('../php/logout.php').finally(() => { window.location.href = 'index.html'; });
+}
+function handleUnauth(r) {
+  if (r.status === 401) { window.location.href = 'index.html'; }
+  return r;
+}
+
+fetch('../php/doctors.php').then(handleUnauth).then(r => r.json()).then(data => {
+  const sel = document.getElementById('doctorid');
+  data.forEach(d => { sel.appendChild(new Option(`${d.doctorname} — ${d.specialization}`, d.doctorid)); });
+});
+
+fetch('../php/staff.php').then(handleUnauth).then(r => r.json()).then(data => {
+  const sel = document.getElementById('staffid');
+  data.forEach(s => { sel.appendChild(new Option(`${s.firstname} ${s.surname}`, s.staffid)); });
+});
+
+function submitForm() {
+  const admissionDate = document.getElementById('admissionDate').value;
+  const patientName   = document.getElementById('patientName').value.trim();
+  const gender        = document.getElementById('gender').value;
+  const staffid       = document.getElementById('staffid').value;
+  const doctorid      = document.getElementById('doctorid').value;
+
+  if (!admissionDate || !patientName || !gender || !staffid || !doctorid) {
+    showMsg('Please fill in all fields', 'error');
+    return;
+  }
+
+  fetch('../php/add_inpatient.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ admissionDate, patientName, gender, staffid: +staffid, doctorid: +doctorid })
+  })
+  .then(handleUnauth).then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      showMsg('✅ Patient admitted successfully!', 'success');
+      document.getElementById('admissionDate').value = '';
+      document.getElementById('patientName').value   = '';
+      document.getElementById('gender').value        = '';
+    } else {
+      showMsg('❌ ' + data.message, 'error');
+    }
+  });
+}
+
+function showMsg(text, type) {
+  const msg = document.getElementById('msg');
+  msg.textContent = text; msg.className = 'msg ' + type; msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 4000);
+}
+</script>
+
+</body>
+</html>
