@@ -100,19 +100,19 @@ hospital_fixed/
 
 ---
 
-## Security fixes applied
-| Issue | Fix |
-|---|---|
-| Live DB credentials in source | Moved to `.env`, `.env` gitignored |
-| SQL injection in delete cascade | All queries use `bind_param()` |
-| Hardcoded JS login | Replaced with PHP session + bcrypt |
-| No server-side auth on endpoints | `requireAuth()` called at top of every PHP file |
-| XSS via innerHTML | All rendering uses `document.createTextNode()` via `esc()` helper |
-| CORS wildcard | Scoped to `http://localhost` |
-| SELECT * in staff.php | Explicit column selection |
-| Duplicate patient rows (outpatients) | Fixed with `GROUP_CONCAT` + `GROUP BY` |
-| Manual admissionID / patientid | Removed from forms; columns are AUTO_INCREMENT |
-| doctorname stored redundantly | Removed from OutPatient; fetched via JOIN |
-| onclick string injection for apostrophes | Replaced with `addEventListener` + object passing |
-| No $result error handling | All GET endpoints check `$result === false` |
-| No SQL schema file | `schema.sql` added with full DDL + seed data |
+## 🔐 Security Improvements
+
+The following best practices have been implemented to ensure application security:
+
+* Environment variables used for sensitive data (credentials removed from source code)
+* Prepared statements (`bind_param`) used to prevent SQL injection
+* Secure authentication system with PHP sessions and bcrypt password hashing
+* Server-side authorization enforced on all protected endpoints
+* Output sanitization to prevent XSS attacks
+* Restricted CORS policy (no wildcard usage)
+* Optimized SQL queries with explicit column selection
+* Proper error handling for all database operations
+* Normalized database schema (removed redundant fields, enforced relationships)
+* Auto-incremented primary keys to prevent manual ID manipulation
+
+A complete database schema is included in `schema.sql` for setup.
